@@ -200,7 +200,7 @@ export default function Home() {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#000000" />
-        <meta property="og:url" content="ページのURL" />
+        <meta property="og:url" content="https://ramen-sender.vercel.app/" />
         <meta property="og:title" content="Ramen Sender" />
         <meta
           property="og:description"
