@@ -240,6 +240,7 @@ export default function Home() {
               quality={quality}
               onLoadingComplete={onLoadingComplete}
               priority={true}
+              decoding={"auto"}
             />
             <div style={{ display: "none" }}>
               {imageJson.map((id: string) => (
