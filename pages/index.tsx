@@ -26,6 +26,7 @@ export default function Home() {
   const [sendError, setSendError] = useState(false);
   const [imageIndex, setImageIndex] = useState(0);
   const [images, setImages] = useState<Array<{ id: string; url: string }>>([]);
+  const [image, setImage] = useState("/ramen.jpeg");
   const [messageKey, setMessageKey] = React.useState(
     notificationMessages[0].key
   );
@@ -61,6 +62,7 @@ export default function Home() {
         const result = await axios.get("/api/ramen");
         setImages(result.data);
         setTimeout(() => {
+          // 超ワークアラウンド　decoding = "async"だとスマホでちらつくのでautoにしたかったのだが、Next/Imageだとautoにできなかったので無理やり変更している
           const img = document.getElementsByClassName("nextImage")[0] as any;
           img.decoding = "auto";
         }, 500);
@@ -116,18 +118,14 @@ export default function Home() {
   // プッシュ通知の購読を解除する
   const unregisterSubscription = useCallback(async () => {
     if ("serviceWorker" in navigator) {
-      try {
-        const registration = await navigator.serviceWorker.getRegistration();
-        if (registration != null) {
-          const subscription = await registration.pushManager.getSubscription();
-          if (subscription) {
-            await axios.delete("/api/pushSubscription", { data: subscription });
-            await subscription.unsubscribe();
-          }
-          setRegisterd(false);
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (registration != null) {
+        const subscription = await registration.pushManager.getSubscription();
+        if (subscription) {
+          await axios.delete("/api/pushSubscription", { data: subscription });
+          await subscription.unsubscribe();
         }
-      } catch (err) {
-        console.log(err);
+        setRegisterd(false);
       }
     }
   }, []);
@@ -175,21 +173,25 @@ export default function Home() {
     }
   }, [imageIndex, images.length]);
 
-  const image = useMemo(() => {
+  useEffect(() => {
     if (images.length === 0) {
-      return "/ramen.jpeg";
+      setImage("/ramen.jpeg");
+      return;
     }
 
+    // 一旦読み込み済みの低画質画像を読み込ませることで画像切替をスムーズにやれるようにした
     setQuality(1);
-    return `/img/${images[imageIndex].id}.jpg`;
+    setImage(`/img/${images[imageIndex].id}_low.jpg`);
   }, [imageIndex, images]);
 
   const onLoadingComplete = useCallback(() => {
+    // 低画質で読み込ませたあとに高画質を読み込ませる
     if (quality === 1) {
       setQuality(100);
+      setImage(`/img/${images[imageIndex].id}.jpg`);
       return;
     }
-  }, [quality]);
+  }, [imageIndex, images, quality]);
 
   return (
     <div className={styles.container}>
@@ -248,20 +250,23 @@ export default function Home() {
               priority={true}
             />
             <div style={{ display: "none" }}>
-              {imageJson.map((id: string) => (
-                <Image
-                  key={id}
-                  alt="ramen"
-                  src={`/img/${id}.jpg`}
-                  width={300}
-                  height={300}
-                  style={{
-                    objectFit: "cover",
-                  }}
-                  quality={1}
-                  priority={true}
-                />
-              ))}
+              {
+                // 低画質の画像を事前に読み込ませておく
+                imageJson.map((id: string) => (
+                  <Image
+                    key={id}
+                    alt="ramen"
+                    src={`/img/${id}_low.jpg`}
+                    width={300}
+                    height={300}
+                    style={{
+                      objectFit: "cover",
+                    }}
+                    quality={1}
+                    priority={true}
+                  />
+                ))
+              }
             </div>
             <Grid>
               <IconButton

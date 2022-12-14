@@ -46,46 +46,44 @@ const getImage = (path, url) => {
 };
 
 const build = async () => {
-  axios
-    .get(
-      `https://${process.env.MICROCMS_DOMAIN}.microcms.io/api/v1/ramen?limit=100`
-    )
-    .then((v) => {
-      const datas = v.data.contents.map((content) => {
-        if (content.image) {
-          const fileName = content.image.url
-            .split("/")
-            [content.image.url.split("/").length - 1].split(".")[0];
-          return {
-            ...content,
-            url: content.image.url,
-            fileName,
-            image: {
-              jpg: `${fileName}.jpg`,
-              webp: `${fileName}.webp`,
-            },
-          };
-        } else {
-          return { ...content };
-        }
-      });
-      datas.forEach((content) => {
-        if (content.image) {
-          getImage(
-            path.join(__dirname, `../public/img/${content.id}.jpg`),
-            `${content.url}?w=600`
-          );
-          getImage(
-            path.join(__dirname, `../public/img/${content.id}.webp`),
-            `${content.url}?w=600&fm=webp`
-          );
-        }
-      });
-      writeFile(
-        path.join(__dirname, "../microcms/ramens.json"),
-        JSON.stringify(datas.map((data) => data.id))
+  const v = await axios.get(
+    `https://${process.env.MICROCMS_DOMAIN}.microcms.io/api/v1/ramen?limit=100`
+  );
+
+  const datas = v.data.contents.map((content) => {
+    if (content.image) {
+      const fileName = content.image.url
+        .split("/")
+        [content.image.url.split("/").length - 1].split(".")[0];
+      return {
+        ...content,
+        url: content.image.url,
+        fileName,
+        image: {
+          jpg: `${fileName}.jpg`,
+          webp: `${fileName}.webp`,
+        },
+      };
+    } else {
+      return { ...content };
+    }
+  });
+  datas.forEach((content) => {
+    if (content.image) {
+      getImage(
+        path.join(__dirname, `../public/img/${content.id}.jpg`),
+        `${content.url}?w=600`
       );
-    });
+      getImage(
+        path.join(__dirname, `../public/img/${content.id}_low.jpg`),
+        `${content.url}?w=300`
+      );
+    }
+  });
+  writeFile(
+    path.join(__dirname, "../microcms/ramens.json"),
+    JSON.stringify(datas.map((data) => data.id))
+  );
 };
 
 build();
