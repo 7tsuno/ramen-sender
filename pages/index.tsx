@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import Head from "next/head";
 import React, { useCallback, useEffect, useMemo } from "react";
 import styles from "../styles/Home.module.css";
@@ -59,6 +60,10 @@ export default function Home() {
       (async () => {
         const result = await axios.get("/api/ramen");
         setImages(result.data);
+        setTimeout(() => {
+          const img = document.getElementsByClassName("nextImage")[0] as any;
+          img.decoding = "auto";
+        }, 500);
       })();
     }
   }, [registerd]);
@@ -230,6 +235,7 @@ export default function Home() {
           <>
             <Typography variant="caption">送る画像</Typography>
             <Image
+              className="nextImage"
               alt="ramen"
               src={image}
               width={300}
@@ -240,7 +246,6 @@ export default function Home() {
               quality={quality}
               onLoadingComplete={onLoadingComplete}
               priority={true}
-              decoding={"auto"}
             />
             <div style={{ display: "none" }}>
               {imageJson.map((id: string) => (
