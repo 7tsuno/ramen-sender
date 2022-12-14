@@ -26,6 +26,12 @@ API KEY を.env の `X_MICROCMS_API_KEY` に設定する
 
 ## アプリの起動
 
+SSGでビルド時にmicroCMSのデータを取るようにしているので、初回起動前やmicroCMSを変更した場合はbuild.jsを叩いてください
+
+```bash
+node script/build.js
+```
+
 アプリを起動します
 
 ```bash
