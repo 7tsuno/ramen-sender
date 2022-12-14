@@ -35,3 +35,7 @@ next-env.d.ts
 
 .env
 vapidKey.json
+public/img/*
+!/public/img/.gitkeep
+microcms/*
+!/microcms/.gitkeep

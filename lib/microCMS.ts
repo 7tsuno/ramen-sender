@@ -1,10 +1,4 @@
-import { createClient } from "microcms-js-sdk";
-import { env } from "./env";
-
-const client = createClient({
-  serviceDomain: env.MICROCMS_DOMAIN,
-  apiKey: env.X_MICROCMS_API_KEY,
-});
+import imageJson from "../microcms/ramens.json";
 
 interface Content {
   id: string;
@@ -14,39 +8,26 @@ interface Content {
 }
 
 export const getRamenURL = async () => {
-  const result = await client.get({
-    endpoint: "ramen",
-    queries: { limit: 100 },
-  });
+  const results = imageJson;
 
-  const ramen =
-    result.contents[Math.floor(Math.random() * result.contents.length)];
+  const id = results[Math.floor(Math.random() * results.length)];
 
-  return ramen.image.url;
+  return `https://ramen-sender.vercel.app/img/${id}.jpg`;
 };
 
 export const getRamens = async () => {
-  const result = await client.get({
-    endpoint: "ramen",
-    queries: { limit: 100 },
-  });
-  return result.contents.map((content: Content) => ({
-    id: content.id,
-    url: `${content.image.url}?w=300`,
+  const results = imageJson;
+  return results.map((id: string) => ({
+    id: id,
+    url: `https://ramen-sender.vercel.app/img/${results}.jpg`,
   }));
 };
 
 export const getRamenByID = async (id: string) => {
-  try {
-    const result = await client.get({
-      endpoint: "ramen",
-      contentId: id,
-    });
-    if (result == null || result.image == null) {
-      return getRamenURL();
-    }
-    return result.image.url;
-  } catch (_e) {
+  const results = imageJson;
+  if (results.some((resultID) => resultID === id)) {
+    return `https://ramen-sender.vercel.app/img/${id}.jpg`;
+  } else {
     return getRamenURL();
   }
 };

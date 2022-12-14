@@ -1,5 +1,5 @@
 import Head from "next/head";
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import styles from "../styles/Home.module.css";
 import { useState } from "react";
 import {
@@ -12,28 +12,12 @@ import {
   Typography,
 } from "@mui/material";
 import axios from "axios";
-import Image from "mui-image";
 
 import { NavigateBefore, NavigateNext } from "@mui/icons-material";
 import { SelectChangeEvent } from "@mui/material";
 import { notificationMessages } from "../lib/messages";
-
-const urlB64ToUint8Array = (base64String: string) => {
-  if (typeof window !== "undefined") {
-    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-    const base64 = (base64String + padding)
-      .replace(/\-/g, "+")
-      .replace(/_/g, "/");
-
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-  }
-};
+import Image from "next/image";
+import imageJson from "../microcms/ramens.json";
 
 export default function Home() {
   const [registerd, setRegisterd] = useState(false);
@@ -44,6 +28,7 @@ export default function Home() {
   const [messageKey, setMessageKey] = React.useState(
     notificationMessages[0].key
   );
+  const [quality, setQuality] = useState(100);
 
   const changeMessage = (event: SelectChangeEvent) => {
     setMessageKey(event.target.value);
@@ -86,6 +71,21 @@ export default function Home() {
         permission === "granted" &&
         process.env.NEXT_PUBLIC_VAPID_PUBLIC != null
       ) {
+        const urlB64ToUint8Array = (base64String: string) => {
+          const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+          const base64 = (base64String + padding)
+            .replace(/\-/g, "+")
+            .replace(/_/g, "/");
+
+          const rawData = window.atob(base64);
+          const outputArray = new Uint8Array(rawData.length);
+
+          for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+          }
+          return outputArray;
+        };
+
         if ("serviceWorker" in navigator) {
           const options = {
             userVisibleOnly: true,
@@ -136,14 +136,15 @@ export default function Home() {
       if (registration) {
         const subscription = await registration.pushManager.getSubscription();
         if (subscription) {
-          const response = await axios.post("/api/pushNotification", {
-            subscription,
-            imageID: images[imageIndex].id,
-            messageKey,
-          });
-          if (response.status === 400) {
-            setSendError(true);
-          }
+          axios
+            .post("/api/pushNotification", {
+              subscription,
+              imageID: images[imageIndex].id,
+              messageKey,
+            })
+            .catch((_e) => {
+              setSendError(true);
+            });
         }
       }
     }
@@ -168,6 +169,22 @@ export default function Home() {
       setImageIndex(imageIndex - 1);
     }
   }, [imageIndex, images.length]);
+
+  const image = useMemo(() => {
+    if (images.length === 0) {
+      return "/ramen.jpeg";
+    }
+
+    setQuality(1);
+    return `/img/${images[imageIndex].id}.jpg`;
+  }, [imageIndex, images]);
+
+  const onLoadingComplete = useCallback(() => {
+    if (quality === 1) {
+      setQuality(100);
+      return;
+    }
+  }, [quality]);
 
   return (
     <div className={styles.container}>
@@ -214,28 +231,52 @@ export default function Home() {
             <Typography variant="caption">送る画像</Typography>
             <Image
               alt="ramen"
-              src={images[imageIndex].url}
-              height="300px"
-              width="300px"
-              fit="cover"
-              duration={500}
-              easing="cubic-bezier(0.7, 0, 0.6, 1)"
-              errorIcon={true}
+              src={image}
+              width={300}
+              height={300}
+              style={{
+                objectFit: "cover",
+              }}
+              quality={quality}
+              onLoadingComplete={onLoadingComplete}
+              priority={true}
             />
+            <div style={{ display: "none" }}>
+              {imageJson.map((id: string) => (
+                <Image
+                  key={id}
+                  alt="ramen"
+                  src={`/img/${id}.jpg`}
+                  width={300}
+                  height={300}
+                  style={{
+                    objectFit: "cover",
+                  }}
+                  quality={1}
+                  priority={true}
+                />
+              ))}
+            </div>
             <Grid>
               <IconButton
                 aria-label="preview"
+                sx={{ m: 1 }}
                 size="large"
                 onClick={previewImage}
               >
                 <NavigateBefore />
               </IconButton>
-              <IconButton aria-label="next" size="large" onClick={nextImage}>
+              <IconButton
+                aria-label="next"
+                sx={{ m: 1 }}
+                size="large"
+                onClick={nextImage}
+              >
                 <NavigateNext />
               </IconButton>
             </Grid>
             <Typography variant="caption">送るメッセージ</Typography>
-            <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
+            <FormControl sx={{ mb: 1, minWidth: 120 }} size="small">
               <Select
                 value={messageKey}
                 onChange={changeMessage}
