@@ -209,7 +209,7 @@ export default function Home() {
         <meta property="og:type" content="website" />
         <meta
           property="og:image"
-          content="https://pushramen.vercel.app/ramen.jpeg"
+          content="https://ramen-sender.vercel.app/ramen.jpeg"
         />
         <title>Ramen Sender</title>
         <link rel="icon" href="/favicon.ico" />
