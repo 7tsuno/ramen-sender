@@ -230,7 +230,7 @@ export default function Home() {
             variant="contained"
             onClick={registerSubscription}
           >
-            プッシュ通知の購読を開始する
+            はじめる
           </Button>
         )}
         {registerd && images.length > 1 && (
@@ -309,7 +309,7 @@ export default function Home() {
               variant="contained"
               onClick={sendSubscription}
             >
-              プッシュ通知を送信する
+              送信する
             </Button>
             <Button
               sx={{ m: 2 }}
