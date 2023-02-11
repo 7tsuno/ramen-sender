@@ -213,6 +213,14 @@ export default function Home() {
         />
         <title>Ramen Sender</title>
         <link rel="icon" href="/favicon.ico" />
+        <link rel="manifest" href="manifest.json" />
+        <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+        <script
+          async
+          src="https://cdn.jsdelivr.net/npm/pwacompat@2.0.9/pwacompat.min.js"
+          integrity="sha384-VcI6S+HIsE80FVM1jgbd6WDFhzKYA0PecD/LcIyMQpT4fMJdijBh0I7Iblaacawc"
+          crossOrigin="anonymous"
+        ></script>
       </Head>
 
       <main className={styles.main}>
